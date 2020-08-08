@@ -2,6 +2,7 @@ const mysql = require('mysql');
 const inquirer = require('inquirer');
 const cTable = require('console.table');
 const Database = require("./js/dbclass");
+const table = require("console.table");
 
 var connection = mysql.createConnection({
     host: "localhost",
@@ -45,6 +46,7 @@ async function runInquirer(){
     }else if(response.choice === 'Update Employee Roles'){
         updateEmployeeRole();
     }
+    connection.end();
 }
 
 async function addDepartment() {
@@ -65,65 +67,115 @@ async function addDepartment() {
     });
 };
 
-async function addRole() {
+async function addRole(){
     
+    connection.query("SELECT * FROM departments", async function(err, res){
+        if (err) throw err;
+        console.log('Departments Query: ', res);
+        const departmentChoices = res.map(({ id, name }) => ({value: id, name: `${id} ${name}`}));
+        console.log(departmentChoices);
+
+        const questions = [
+            {
+                type: 'input',
+                name: 'title',
+                message: 'Enter the Role Title',
+            },
     
-    currentDepartmentsArray = [];
-
-    await connection.query("SELECT * FROM departments", function(err, res){
-        if (err) {
-            throw err;
-        }else {
-            setValue(res);
-        }
-        // Object(res)
-        //     console.log("Object is: ", Object(res));
-        //     currentDepartmentsArray.push(res);
-        //     console.log("currentDepartmentsArray is : ", currentDepartmentsArray);
-       });
+            {
+                type: 'input',
+                name: 'salary',
+                message: 'Enter salary for this role'
+            },
     
-    function setValue(value) {
-        currentDepartmentsArray = value;
-        console.log("Current Departments Array is: ", currentDepartmentsArray);
-    }
-
-    const questions = [
-        {
-            type: 'input',
-            name: 'title',
-            message: 'Enter the Role Title',
-        },
-
-        {
-            type: 'input',
-            name: 'salary',
-            message: 'Enter salary for this role'
-        },
-
-        {
-            type: 'list',
-            name: 'department_id',
-            message:"Select a Department",
-            choices: currentDepartmentsArray.map()
+            {
+                type: 'list',
+                name: 'department_id',
+                message:"Select a Department",
+                choices: departmentChoices
                 
+            }
+            
+        ]
+        const response = await inquirer.prompt(questions);
+
+        connection.query("INSERT INTO role SET ?",
+                {
+                  title: response.title,
+                  salary: response.salary || 0,
+                  department_id: response.department_id,
+                },
+                
+                function(err, data) {
+                  if (err) throw err;
+                  runInquirer()
+                });
+       
+        })
+      
+    
+            // var query = `SELECT `
            
-        },
-    ]
+        
+          
+        
+         
+            
+        
+            
+
+            
+                
+      
+    
+    
+        
+};
+
+// function addRolePrompt(departmentChoices) {
+    
+//     // var query = `SELECT `
+   
+
+  
+
+//     const questions = [
+//         {
+//             type: 'input',
+//             name: 'title',
+//             message: 'Enter the Role Title',
+//         },
+
+//         {
+//             type: 'input',
+//             name: 'salary',
+//             message: 'Enter salary for this role'
+//         },
+
+//         {
+//             type: 'list',
+//             name: 'department_id',
+//             message:"Select a Department",
+//             choices: departmentChoices
+            
+//         }
+        
+//     ]
     
 
-    const response = await inquirer.prompt(questions);
-    connection.query("INSERT INTO role SET ?",
-        {
-          title: response.title,
-          salary: response.salary || 0,
-          department_id: response.department_id,
-        },
+//     const response = await inquirer.prompt(questions);
+//     await connection.query("INSERT INTO role SET ?",
+//         {
+//           title: response.title,
+//           salary: response.salary || 0,
+//           department_id: response.department_id,
+//         },
         
-        function(err) {
-          if (err) throw err;
-        });
-        runInquirer()
-};
+//         function(err) {
+//           if (err) throw err;
+//         });
+//         runInquirer()
+// };
 
 async function addEmployee() {
     const questions = [
@@ -195,7 +247,10 @@ async function viewRoles() {
 
 async function viewEmployees() {
     console.log("Fetching all employees...\n");
-    connection.query("SELECT first_name, last_name, role_id FROM employee", function(err, res) {
+
+    const query = ``
+
+    connection.query(query, function(err, res) {
         if (err) throw err;
         
         console.table("Here is a list of all current Employees: ", res);
