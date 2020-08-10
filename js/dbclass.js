@@ -6,6 +6,9 @@ class Database {
     }
     query( sql, args ) {
         return new Promise( ( resolve, reject ) => {
+            // console.log("This is the SQL: ", sql);
+            // console.log("These are the args: ", args);
+
             this.connection.query( sql, args, ( err, rows ) => {
                 if ( err )
                     return reject( err );
